@@ -4,7 +4,8 @@ const c = Chalk.default
 const helper = require('./helper')
 const log = console.log
 const mongoose = require('mongoose')
-// const {ObjectId} = mongoose
+const jwt = require('jsonwebtoken')
+
 module.exports =  function(method,model) {
     const handleRequest = function(req, res) {        
         const types = method.toLowerCase()
@@ -193,6 +194,73 @@ module.exports =  function(method,model) {
         res.send('success update '+models)
     }
     
+    const login = function (req, res) {
+        try {
+            const Schema = require(`../models/${model}`)
+            const {password} = req.body
+            if(req.body.email !== undefined) {
+                const email = req.body.email
+                Schema.find({email}).exec().then((result) => {
+                    if(result.length < 1) {
+                        return res.status(401).json({
+                            message: 'email doensn\'t exist'
+                        })
+                    } else {
+                        if(result[0].password === password) {
+                            const token = jwt.sign({_id: result[0]._id,email: result[0].email},process.env.JWT_KEY,{expiresIn: 12400})
+                            return res.status(200).json({
+                                message: 'you\'ve authenticated',
+                                token
+                            })
+                        }
+                        return res.status(401).json({
+                            message: 'failed to authenticated'
+                        })
+                    }
+                }).catch((err) => {
+                    res.status(401).json({
+                        message: 'failed to authenticated',
+                        error: err
+                    })
+                });
+            } else if(req.body.username !== undefined) {
+                const {username} = req.body
+                Schema.find({username}).exec().then((result) => {
+                    if(result.length < 1) {
+                        return res.status(401).json({
+                            message: 'username doensn\'t exist'
+                        })
+                    } else {
+                        if(result[0].password === password) {
+                            const token = jwt.sign({_id: result[0]._id,username: result[0].username},process.env.JWT_KEY,{expiresIn: 12400})
+                            return res.status(200).json({
+                                message: 'you\'ve authenticated',
+                                token
+                            })
+                        }
+                        return res.status(401).json({
+                            message: 'failed to authenticated'
+                        })
+                    }
+                }).catch((err) => {
+                    return res.status(401).json({
+                        message: 'failed to authenticated',
+                        error: err
+                    })
+                });
+            } else {
+                return res.status(401).json({
+                    message: 'failed to authenticated',
+                    error: err
+                })
+            }
+        } catch (error) {
+            res.status(401).json({
+                message: 'failed to authenticated',
+                error
+            })
+        }
+    }
 
     const job = {
         get,
@@ -202,7 +270,8 @@ module.exports =  function(method,model) {
         getone:getOne,
         put,
         updatearray: updateArray,
-        deletearray: deleteArray
+        deletearray: deleteArray,
+        login
     }
 
     return handleRequest

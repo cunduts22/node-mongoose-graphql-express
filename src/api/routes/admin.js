@@ -1,6 +1,7 @@
 const express = require('express')()
 const app = express
 const query = require('../../utils/methodExpress')
+
 app.route('/user')
     .get(query('get', 'user'))
     .post(query('post', 'user'));

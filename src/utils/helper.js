@@ -10,6 +10,19 @@ const checkObject = function(results) {
     }
 
     const looping = (obj) => {  
+
+        for (let [key, value] of Object.entries(obj)) {
+            keys = key
+            values = value
+            if (checkTypeOf(value)) {
+                first(value);
+            } else {
+                produce.push({
+                    [keys]: values
+                })
+            }
+        }
+
         const first = (objects) => {
             let x = keys;
             for (let [key, value] of Object.entries(objects)) {                
@@ -38,17 +51,7 @@ const checkObject = function(results) {
                     keys = x;
                 }
             }
-        }
-
-        for(let [key, value] of Object.entries(obj)) {
-            keys = key
-            values = value
-            if(checkTypeOf(value)) {
-                first(value);
-            } else {
-                produce.push({ [keys]: values }) 
-            }
-        }                           
+        }                                   
     }
 
     const checkTypeOf = (obj) => {
